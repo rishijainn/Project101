@@ -2,51 +2,78 @@ import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
 import React from 'react'
 import { useState } from 'react';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
+
 
 const LoginContent = ({navigation,setIsforgetPassword}) => {
     const [form, setForm] = useState({ email: "", password: "" });
-    const [userType, setUserType] = useState(null); // Default to "customer"
-
+    const [isLoading,setIsLoding]=useState(false);
     const BASE_URL = "http://10.0.2.2:4000";
 
     const onChangeHandler = (name, value) => {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const onSubmitHandler = async () => {
+    const onSubmitHandler = async (user) => {
         try {
-            const response = await axios.post(`${BASE_URL}/${userType}/login`, form, {
+            const response = await axios.post(`${BASE_URL}/${user}/login`, form, {
                 headers: { "Content-Type": "application/json" }
             });
             console.log("Login Response:", response.data);
             alert("Login Successful!");
-            navigation.navigate("Home");
+            await AsyncStorage.multiSet([
+                ["isLoggedIn", "true"],
+                ["user", "customer"],
+                ["userId", response.data.user._id],
+                ["name", response.data.user.name],
+                ["email", response.data.user.email]
+            ]);
+            
+            navigation.replace("Home"); // ✅ Ensures user can't navigate back to Login
+            setIsLoding(false);
         } catch (error) {
             console.error("Login Error:", error.response?.data || error.message);
             alert(error.response?.data?.message || "Login failed. Please try again.");
         }
     };
+
+    const EmailValidation = async () => {
+        setIsLoding(true);
+        if (!form.email) {
+            Alert.alert("Please enter your email.");
+            return;
+        }
+
+        try {
+            const userResponse = await axios.get(`http://10.0.2.2:4000/user/emailValidation/${form.email}`);
+            const shopResponse = await axios.get(`http://10.0.2.2:4000/Shopkeeper/emailValidation/${form.email}`);
+
+            // setIsUserEmail(userResponse.data.success);
+            // setIsShopEmail(shopResponse.data.success);
+
+            if (!userResponse.data.success && !shopResponse.data.success) {
+                Alert.alert("This email is not registered.");
+                return;
+            }
+
+            if (userResponse.data.success && !shopResponse.data.success) {
+                onSubmitHandler('user');
+            } else if (!userResponse.data.success && shopResponse.data.success) {
+                onSubmitHandler('Shopkeeper');
+            }
+            
+        } catch (error) {
+            Alert.alert("Something went wrong. Please try again later.");
+        }
+        
+    };
     return (
         <View style={styles.formContainer}>
             <Text style={styles.label}>Login or Sign Up</Text>
 
-            {/* User Type Selection */}
-            <View style={styles.userTypeContainer}>
-                <Pressable
-                    style={[styles.userTypeButton, userType === "user" && styles.userTypeButtonActive]}
-                    onPress={() => setUserType("user")}
-                >
-                    <Text style={styles.userTypeText}>Customer</Text>
-                </Pressable>
-
-                <Pressable
-                    style={[styles.userTypeButton, userType === "Shopkeeper" && styles.userTypeButtonActive]}
-                    onPress={() => setUserType("Shopkeeper")}
-                >
-                    <Text style={styles.userTypeText}>Shopkeeper</Text>
-                </Pressable>
-            </View>
-
+            
             <TextInput
                 placeholder="Email or Username"
                 style={styles.input}
@@ -63,8 +90,8 @@ const LoginContent = ({navigation,setIsforgetPassword}) => {
             />
 
             <Text style={styles.forgotPassword} onPress={() => navigation.navigate("Forget")}>Forgot Password?</Text>
-
-            <Pressable style={styles.continueButton} onPress={onSubmitHandler}>
+            {isLoading && <ActivityIndicator size="large" color="#007bff" />}
+            <Pressable style={styles.continueButton} onPress={EmailValidation}>
                 <Text style={styles.continueText}>Continue</Text>
             </Pressable>
 
@@ -83,7 +110,7 @@ const LoginContent = ({navigation,setIsforgetPassword}) => {
             {/* Sign Up Link */}
             <View style={styles.signUpContainer}>
                 <Text style={styles.signUpText}>Don't have an account?</Text>
-                <Text style={styles.signUpLink} onPress={() => navigation.navigate('SignUp')}> Sign up</Text>
+                <Text style={styles.signUpLink} onPress={() => navigation.navigate('category')}> Sign up</Text>
             </View>
         </View>
     )

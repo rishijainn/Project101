@@ -1,8 +1,14 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from 'react-native';
 import React from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Home = ({ navigation }) => {
+  const logOutHandler=async()=>{
+    await AsyncStorage.setItem("isLoggedIn","false");
+    navigation.navigate('Login');
+  
+  }
   return (
     <ScrollView style={styles.container}>
       {/* Hero Section */}
@@ -19,9 +25,9 @@ const Home = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.requestButton}
-          onPress={() => navigation.navigate("Login")}
+          onPress={logOutHandler}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={styles.buttonText}>LogOut</Text>
         </TouchableOpacity>
       </View>
 

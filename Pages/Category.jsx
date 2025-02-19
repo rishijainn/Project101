@@ -7,11 +7,11 @@ const Category = ({ navigation }) => {
       <Text style={styles.heading}>Who are you?</Text>
       <Text style={styles.subText}>Choose your role to continue</Text>
 
-      <Pressable style={styles.button} onPress={() => navigation.navigate('CustomerSignup')}>
+      <Pressable style={styles.button} onPress={() => navigation.navigate('SignUp',{userType:"user"})}>
         <Text style={styles.buttonText}>I am a Customer</Text>
       </Pressable>
 
-      <Pressable style={styles.buttonShopkeeper} onPress={() => navigation.navigate('ShopkeeperSignUp')}>
+      <Pressable style={styles.buttonShopkeeper} onPress={() => navigation.navigate('SignUp',{userType:"Shopkeeper"})}>
         <Text style={styles.buttonText}>I am a Shopkeeper</Text>
       </Pressable>
     </View>

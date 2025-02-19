@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "844650451127",
+    "project_id": "native-project-b2817",
+    "storage_bucket": "native-project-b2817.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844650451127:android:b841d9ba50284a44bd7d32",
+        "android_client_info": {
+          "package_name": "com.mynewproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvGCD3rMz2HG8neD3QIdgnP2yFF4SjyA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

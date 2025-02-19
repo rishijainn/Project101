@@ -1,10 +1,12 @@
 import { StyleSheet, Text, TextInput, View, Pressable, Modal, Alert } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { ActivityIndicator } from 'react-native-paper';
 
 const ForgotPassword = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     // const [isUserEmail, setIsUserEmail] = useState(false);
     // const [isShopEmail, setIsShopEmail] = useState(false);
     const [userType, setUserType] = useState('');
@@ -31,6 +33,7 @@ const ForgotPassword = ({ navigation }) => {
     const EmailValidation = async () => {
         setError(null);
         setSuccessMessage('');
+        
 
         if (!email.trim()) {
             setError("Please enter your email.");
@@ -76,9 +79,9 @@ const ForgotPassword = ({ navigation }) => {
         }
     };
     const generateOtp = async (selectedUserType) => {
+        setIsLoading(true);
         const generatedOtp = Math.floor(1000 + Math.random() * 9000);
         setOtp(''); // Clear previous OTP
-        setIsOtpExpired(false);
         setTimer(30); // Start the countdown
 
         try {
@@ -93,6 +96,7 @@ const ForgotPassword = ({ navigation }) => {
         } catch (error) {
             setError("Failed to send OTP. Please try again.");
         }
+        setIsOtpExpired(false);
     };
 
 
@@ -118,11 +122,13 @@ const ForgotPassword = ({ navigation }) => {
     const onChangePassword = (name, value) => {
         setCheckPassword(prev => ({ ...prev, [name]: value }));
     };
-    
+
 
     const updatePassword = () => {
+        setIsLoading(true)
         try {
-            axios.patch(`http://10.0.2.2:4000/${userType === "customer" ? 'user' : 'shopkeeper'}/updatePassword/${email}`,{password:checkPassword.confirmPassword});
+            axios.patch(`http://10.0.2.2:4000/${userType === "customer" ? 'user' : 'shopkeeper'}/updatePassword/${email}`, { password: checkPassword.confirmPassword });
+            setIsLoading(false);
             navigation.navigate("Login");
         } catch {
             Alert.alert("error");
@@ -142,12 +148,18 @@ const ForgotPassword = ({ navigation }) => {
             {
                 isChangePassword ?
                     (<View style={styles.formContainer}>
+
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            {isLoading ? (
+                                <ActivityIndicator size="large" color="#007bff" />
+                            ) : null}
+                        </View>
                         <TextInput
                             placeholder="Password"
                             style={styles.input}
                             placeholderTextColor="#555"
                             value={checkPassword.password}
-                            onChangeText={(value)=>onChangePassword("password",value)}
+                            onChangeText={(value) => onChangePassword("password", value)}
                         />
                         <TextInput
                             placeholder="Confirm Password"
@@ -155,7 +167,7 @@ const ForgotPassword = ({ navigation }) => {
                             placeholderTextColor="#555"
                             secureTextEntry
                             value={checkPassword.confirmPassword}
-                            onChangeText={(value)=>onChangePassword("confirmPassword",value)}
+                            onChangeText={(value) => onChangePassword("confirmPassword", value)}
                         />
                         <Pressable
                             style={styles.continueButton}
@@ -168,6 +180,8 @@ const ForgotPassword = ({ navigation }) => {
                     </View>) :
 
                     <View style={styles.formContainer}>
+
+                        
                         <Text style={styles.label}>Enter your Email</Text>
                         <TextInput
                             placeholder="Email address"
@@ -179,6 +193,7 @@ const ForgotPassword = ({ navigation }) => {
 
                         {error && <Text style={styles.errorText}>{error}</Text>}
                         {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+                        {isLoading&& <ActivityIndicator size="large" color="#007bff" />}
 
                         {ask && (
                             <View style={styles.userTypeContainer}>
@@ -227,7 +242,7 @@ const ForgotPassword = ({ navigation }) => {
                                     {/* Verify Button */}
                                     <Pressable
                                         style={styles.modalButton}
-                                        onPress={ verification}
+                                        onPress={verification}
                                     >
                                         <Text style={styles.modalButtonText}>Verify</Text>
                                     </Pressable>
@@ -261,12 +276,6 @@ const ForgotPassword = ({ navigation }) => {
                         </Pressable>
                     </View>
             }
-
-
-
-
-            {/* } */}
-
 
 
         </View>

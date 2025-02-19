@@ -1,9 +1,11 @@
 import { StyleSheet, Text, TextInput, View, Pressable, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import CustomerSignUp from '../components/CustomerSignUp';
+import ShopkeeperSignUp from './ShopkeeperSignUp';
 
-const SignUp = ({ navigation }) => {
+const SignUp = ({ route,navigation }) => {
 
+    const userType=route.params.userType;
     return (
         <View style={styles.container}>
             {/* Header Section */}
@@ -12,7 +14,12 @@ const SignUp = ({ navigation }) => {
                 <Text style={styles.subText}>Sign up to continue and get the best from our app</Text>
             </View>
 
-            <CustomerSignUp navigation={navigation} />
+            {
+                userType==='user'?
+                <CustomerSignUp navigation={navigation} />:
+                <ShopkeeperSignUp navigation={navigation}/>
+            }
+            
 
         </View>
     );
