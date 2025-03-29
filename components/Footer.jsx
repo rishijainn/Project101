@@ -6,13 +6,16 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const Footer = ({ navigation ,userDetail}) => {
   return (
     <View style={styles.footerContainer}>
-      <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.iconButton}>
+      <TouchableOpacity onPress={() => navigation.navigate('ShHome')} style={styles.iconButton}>
         <FontAwesome name="home" size={28} color="white" />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Requests')} style={styles.iconButton}>
         <Ionicons name="list" size={28} color="white" />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Profile',{name:userDetail.name,email:userDetail.email})} style={styles.iconButton}>
+        <FontAwesome name="user" size={28} color="white" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate('Request',{name:userDetail.name,email:userDetail.email,userId:userDetail.id})} style={styles.iconButton}>
         <FontAwesome name="user" size={28} color="white" />
       </TouchableOpacity>
     

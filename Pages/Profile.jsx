@@ -3,9 +3,16 @@ import React from 'react';
 import { Card } from 'react-native-paper';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Footer from '../components/Footer';
+import { useAuth } from '../AuthProvider';
 
-const Profile = ({ navigation,route }) => {
+const Profile = ({navigation}) => {
+  const {userDetail}=useAuth();
+
+  const handlePreferences=(lable)=>{
+    if(lable==='Legal Policy'){
+      navigation.navigate("Policy");
+    }
+  }
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
       {/* Profile Card */}
@@ -13,11 +20,11 @@ const Profile = ({ navigation,route }) => {
         <Card.Content style={styles.cardContent}>
           <View style={styles.profileContainer}>
             <View style={styles.profileImageContainer}>
-              <Text style={styles.profileInitial}>{route.params.name?.charAt(0)}</Text>
+              <Text style={styles.profileInitial}>{userDetail.name?.charAt(0)}</Text>
             </View>
             <View style={styles.infoContainer}>
-              <Text style={styles.name}>{route.params.name}</Text>
-              <Text style={styles.email}>{route.params.email}</Text>
+              <Text style={styles.name}>{userDetail.name}</Text>
+              <Text style={styles.email}>{userDetail.email}</Text>
             </View>
           </View>
         </Card.Content>
@@ -31,12 +38,12 @@ const Profile = ({ navigation,route }) => {
             <View style={styles.activityBox}>
               <FontAwesome name="search" size={24} color="#4CAF50" />
               <Text style={styles.activityLabel}>Total Searches</Text>
-              <Text style={styles.activityValue}>{route.params.totSearch || "_ _"}</Text>
+              <Text style={styles.activityValue}>{ "_ _"}</Text>
             </View>
             <View style={styles.activityBox}>
               <MaterialIcons name="chat" size={24} color="#2196F3" />
               <Text style={styles.activityLabel}>Total Responses</Text>
-              <Text style={styles.activityValue}>{route.params.totResponse || "_ _"}</Text>
+              <Text style={styles.activityValue}>{"_ _"}</Text>
             </View>
           </View>
         </Card.Content>
@@ -55,7 +62,7 @@ const Profile = ({ navigation,route }) => {
               { label: "Settings", icon: "settings" },
               { label: "Logout", icon: "logout", color: "#D32F2F" },
             ].map((item, index) => (
-              <Pressable key={index} style={styles.preferenceButton}>
+              <Pressable key={index} style={styles.preferenceButton} onPress={()=>{handlePreferences(item.label)}}>
                 <MaterialIcons name={item.icon} size={20} color={item.color || "#333"} />
                 <Text style={styles.preferenceText}>{item.label}</Text>
               </Pressable>
@@ -63,9 +70,7 @@ const Profile = ({ navigation,route }) => {
           </View>
         </Card.Content>
       </Card>
-            <View style={styles.footerContainer}>
-                <Footer navigation={navigation}/>
-            </View>
+    
     </ScrollView>
   );
 };
@@ -167,9 +172,4 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#333',
   },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-},
 });

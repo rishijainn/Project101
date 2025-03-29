@@ -1,60 +1,60 @@
-import { StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
-import React from 'react'
-import { useState } from 'react';
+import { StyleSheet, Text, TextInput, View, Pressable, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
+import { useAuth } from '../AuthProvider';
 
-
-const LoginContent = ({navigation,setIsforgetPassword}) => {
+const LoginContent = ({navigation, setIsforgetPassword}) => {
     const [form, setForm] = useState({ email: "", password: "" });
-    const [isLoading,setIsLoding]=useState(false);
+    const [loading, setloading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const BASE_URL = "http://10.0.2.2:4000";
+    const{login}=useAuth();
+
 
     const onChangeHandler = (name, value) => {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const onSubmitHandler = async (user) => {
+    const onSubmitHandler = async (user) => { 
         try {
             const response = await axios.post(`${BASE_URL}/${user}/login`, form, {
                 headers: { "Content-Type": "application/json" }
             });
-            console.log("Login Response:", response.data);
-            alert("Login Successful!");
-            await AsyncStorage.multiSet([
-                ["isLoggedIn", "true"],
-                ["user", "customer"],
-                ["userId", response.data.user._id],
-                ["name", response.data.user.name],
-                ["email", response.data.user.email]
-            ]);
-            
-            navigation.replace("Home"); // ✅ Ensures user can't navigate back to Login
-            setIsLoding(false);
+            console.log("helo")
+            await login(response.data.user,user === "Shopkeeper" ? "Shopkeeper" : "customer");
+           
+            console.log("helo kese ho")
+            setloading(false);
+             
         } catch (error) {
             console.error("Login Error:", error.response?.data || error.message);
-            alert(error.response?.data?.message || "Login failed. Please try again.");
+            Alert.alert("Login Failed", error.response?.data?.message || "Please check your credentials and try again.");
+            setloading(false);
         }
     };
 
     const EmailValidation = async () => {
-        setIsLoding(true);
         if (!form.email) {
-            Alert.alert("Please enter your email.");
+            Alert.alert("Email Required", "Please enter your email address.");
             return;
         }
+        
+        if (!form.password) {
+            Alert.alert("Password Required", "Please enter your password.");
+            return;
+        }
+        
+        setloading(true);
 
         try {
-            const userResponse = await axios.get(`http://10.0.2.2:4000/user/emailValidation/${form.email}`);
-            const shopResponse = await axios.get(`http://10.0.2.2:4000/Shopkeeper/emailValidation/${form.email}`);
-
-            // setIsUserEmail(userResponse.data.success);
-            // setIsShopEmail(shopResponse.data.success);
+            const userResponse = await axios.get(`${BASE_URL}/user/emailValidation/${form.email}`);
+            const shopResponse = await axios.get(`${BASE_URL}/Shopkeeper/emailValidation/${form.email}`);
 
             if (!userResponse.data.success && !shopResponse.data.success) {
-                Alert.alert("This email is not registered.");
+                Alert.alert("Account Not Found", "This email is not registered with us.");
+                setloading(false);
                 return;
             }
 
@@ -63,124 +63,136 @@ const LoginContent = ({navigation,setIsforgetPassword}) => {
             } else if (!userResponse.data.success && shopResponse.data.success) {
                 onSubmitHandler('Shopkeeper');
             }
-            
         } catch (error) {
-            Alert.alert("Something went wrong. Please try again later.");
+            Alert.alert("Connection Error", "Something went wrong. Please check your connection and try again.");
+            
         }
-        
+        setloading(false);
     };
+
     return (
         <View style={styles.formContainer}>
             <Text style={styles.label}>Login or Sign Up</Text>
-
             
-            <TextInput
-                placeholder="Email or Username"
-                style={styles.input}
-                placeholderTextColor="#555"
-                onChangeText={(value) => onChangeHandler("email", value)}
-            />
+            <View style={styles.inputWrapper}>
+                <TextInput
+                    placeholder="Email or Username"
+                    style={styles.input}
+                    placeholderTextColor="#8A8D91"
+                    onChangeText={(value) => onChangeHandler("email", value)}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                />
+            </View>
 
-            <TextInput
-                placeholder="Password"
-                style={styles.input}
-                secureTextEntry={true}
-                placeholderTextColor="#555"
-                onChangeText={(value) => onChangeHandler("password", value)}
-            />
+            <View style={styles.inputWrapper}>
+                <TextInput
+                    placeholder="Password"
+                    style={styles.input}
+                    secureTextEntry={!showPassword}
+                    placeholderTextColor="#8A8D91"
+                    onChangeText={(value) => onChangeHandler("password", value)}
+                />
+                <TouchableOpacity 
+                    style={styles.eyeIcon} 
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <Text style={styles.eyeIconText}>{showPassword ? 'Hide' : 'Show'}</Text>
+                </TouchableOpacity>
+            </View>
 
-            <Text style={styles.forgotPassword} onPress={() => navigation.navigate("Forget")}>Forgot Password?</Text>
-            {isLoading && <ActivityIndicator size="large" color="#007bff" />}
-            <Pressable style={styles.continueButton} onPress={EmailValidation}>
-                <Text style={styles.continueText}>Continue</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Forget")}>
+                <Text style={styles.forgotPassword}>Forgot Password?</Text>
+            </TouchableOpacity>
+            
+            <Pressable 
+                style={styles.continueButton} 
+                onPress={EmailValidation}
+                disabled={loading}
+            >
+                {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                    <Text style={styles.continueText}>Continue</Text>
+                )}
             </Pressable>
 
-            {/* OR Section */}
             <View style={styles.orContainer}>
                 <View style={styles.line} />
                 <Text style={styles.orText}>Or, log in with</Text>
                 <View style={styles.line} />
             </View>
 
-            {/* Google Login Button */}
-            <Pressable style={styles.googleButton}>
+            <Pressable 
+                style={styles.googleButton}
+                onPress={() => navigation.navigate('ShopInfo')}
+            >
                 <Text style={styles.googleText}>Continue with Google</Text>
             </Pressable>
 
-            {/* Sign Up Link */}
             <View style={styles.signUpContainer}>
                 <Text style={styles.signUpText}>Don't have an account?</Text>
-                <Text style={styles.signUpLink} onPress={() => navigation.navigate('category')}> Sign up</Text>
+                <Text 
+                    style={styles.signUpLink} 
+                    onPress={() => navigation.navigate('category')}
+                >
+                    Sign up
+                </Text>
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default LoginContent
+export default LoginContent;
+
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8F9FA' },
-
-    headerCss: {
-        flex: 1,
-        backgroundColor: '#064635',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 20,
-        borderBottomEndRadius: 30,
-        borderBottomStartRadius: 30,
-    },
-    heading: { fontWeight: 'bold', fontSize: 36, color: '#F8F9FA' },
-    subText: { fontSize: 16, color: '#F8F9FA', textAlign: 'center', marginTop: 5 },
-
     formContainer: {
         flex: 3,
         backgroundColor: '#F8F9FA',
         padding: 25,
         alignItems: 'center',
     },
-    label: { fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#005F73' },
-
-    userTypeContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    label: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 25,
+        color: '#064635',
+        alignSelf: 'center',
+    },
+    inputWrapper: {
         width: '100%',
+        position: 'relative',
         marginBottom: 15,
     },
-    userTypeButton: {
-        flex: 1,
-        padding: 10,
-        marginHorizontal: 5,
-        borderWidth: 1,
-        borderColor: '#2D6A4F',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    userTypeButtonActive: {
-        backgroundColor: '#FFB300',
-        opacity: 0.4
-    },
-    userTypeText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#2D6A4F',
-    },
-
     input: {
         width: '100%',
         height: 60,
         borderWidth: 1,
-        borderColor: '#ccc',
+        borderColor: '#E0E0E0',
         backgroundColor: 'white',
         paddingHorizontal: 15,
         borderRadius: 12,
-        marginBottom: 15,
         color: '#333',
         fontSize: 16,
         elevation: 3,
     },
-
-    forgotPassword: { color: '#005F73', textAlign: 'right', alignSelf: 'flex-end', marginBottom: 15, fontSize: 16 },
-
+    eyeIcon: {
+        position: 'absolute',
+        right: 15,
+        top: 20,
+    },
+    eyeIconText: {
+        color: '#064635',
+        fontWeight: '600',
+    },
+    forgotPassword: {
+        color: '#005F73',
+        textAlign: 'right',
+        alignSelf: 'flex-end',
+        marginBottom: 25,
+        fontSize: 16,
+        fontWeight: '500',
+    },
     continueButton: {
         width: '100%',
         backgroundColor: '#2D6A4F',
@@ -189,23 +201,32 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 10,
         elevation: 4,
+        height: 60,
+        justifyContent: 'center',
     },
-    continueText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
-
+    continueText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
     orContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         width: '100%',
-        marginVertical: 20,
+        marginVertical: 25,
     },
     line: {
         flex: 1,
         height: 1,
-        backgroundColor: '#ccc',
+        backgroundColor: '#DADADA',
         marginHorizontal: 10,
     },
-    orText: { textAlign: 'center', fontSize: 16, color: '#555', fontWeight: '600' },
-
+    orText: {
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#777',
+        fontWeight: '600',
+    },
     googleButton: {
         width: '100%',
         backgroundColor: 'white',
@@ -215,10 +236,27 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#1E88E5',
         elevation: 3,
+        height: 60,
+        justifyContent: 'center',
     },
-    googleText: { color: '#1E88E5', fontWeight: 'bold', fontSize: 18 },
-
-    signUpContainer: { flexDirection: 'row', marginTop: 25 },
-    signUpText: { color: '#333', fontSize: 16 },
-    signUpLink: { color: '#FFC300', fontWeight: 'bold', fontSize: 16 },
+    googleText: {
+        color: '#1E88E5',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
+    signUpContainer: {
+        flexDirection: 'row',
+        marginTop: 30,
+        justifyContent: 'center',
+    },
+    signUpText: {
+        color: '#555',
+        fontSize: 16,
+    },
+    signUpLink: {
+        color: '#FFC300',
+        fontWeight: 'bold',
+        fontSize: 16,
+        marginLeft: 5,
+    },
 });

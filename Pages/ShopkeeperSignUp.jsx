@@ -31,32 +31,44 @@ const CustomerSignUp = ({ navigation }) => {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const generateOtp = () => {
+    const generateOtp = async () => {
         if (form.password !== form.ConfirmPassword) {
             Alert.alert("Error", "Passwords do not match.");
             return;
         }
-
         setIsLoading(true);
-        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        setOtp(generatedOtp);
-
-        axios.post(`http://10.0.2.2:4000/user/emailVerification/${form.email}/${generatedOtp}`)
-            .then(() => {
-                setIsGenerated(true);
-                setIsModalVisible(true);
-                setTimer(30);  // Reset timer when OTP is sent
-            })
-            .catch(error => console.error("OTP Error:", error))
-            .finally(() => setIsLoading(false));
+    
+        try {
+            const response = await axios.get(`http://10.0.2.2:4000/Shopkeeper/emailValidation/${form.email}`);
+            console.log(response.data.success,"value")
+            if (response.data.success) {
+                Alert.alert("User already exists");
+                setForm({ name: "", email: "", password: "", ConfirmPassword: "" });
+                setIsLoading(false); // 🛠 **Move this here**
+                return;
+            }
+    
+            const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            setOtp(generatedOtp);
+    
+            await axios.post(`http://10.0.2.2:4000/Shopkeeper/emailVerification/${form.email}/${generatedOtp}`);
+            setIsGenerated(true);
+            setIsModalVisible(true);
+            setTimer(30);
+        } catch (error) {
+            console.error("OTP Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const verification = async () => {
         if (enteredOtp.trim() === otp.trim()) {
             setIsVerified(true);
-            Alert.alert("Success", "OTP Verified Successfully!");
+            setIsModalVisible(false);
             await onSubmit();
-            navigation.navigate("Home");
+            Alert.alert("Success", "OTP Verified Successfully!");
+             
         } else {
             Alert.alert("Error", "Invalid OTP. Please try again.");
         }
@@ -66,7 +78,7 @@ const CustomerSignUp = ({ navigation }) => {
         setIsLoading(true);
         try {
             const response = await axios.post(
-                `http://10.0.2.2:4000/user/signUp`,
+                `http://10.0.2.2:4000/Shopkeeper/SignUp`,
                 {
                     name: form.name,
                     email: form.email,
@@ -88,6 +100,7 @@ const CustomerSignUp = ({ navigation }) => {
                 ["email", response.data.user.email]
             ]);
 
+            navigation.navigate("ShopInfo");
         } catch (error) {
             console.error("Signup Error:", error.response ? error.response.data : error.message);
             Alert.alert("Error", error.response?.data?.message || "Signup failed. Please try again.");
@@ -98,6 +111,7 @@ const CustomerSignUp = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+            
             <Text style={styles.heading}>Sign Up</Text>
 
             <TextInput
@@ -182,20 +196,58 @@ const styles = StyleSheet.create({
     signUpButtonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
     signUpButtonActive: { backgroundColor: '#2D6A4F' },
 
-    modalContainer: {
-        width: 400,
-        padding: 20,
-        alignItems: "center",
-        shadowColor: "#000",
-        alignSelf:"center"
-    },
-    modalContent: {
-        width: '85%', backgroundColor: '#fff', padding: 25, borderRadius: 12, alignItems: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5,
-    },
-    modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#005F73', marginBottom: 10 },
-    otpInput: { width: '90%', height: 50, borderWidth: 1, borderColor: '#ccc', borderRadius: 10, marginBottom: 15, fontSize: 18, textAlign: 'center' },
-    timerText: { fontSize: 16, color: '#FF5733', marginBottom: 15, fontWeight: 'bold' },
-    verifyButton: { width: '90%', backgroundColor: '#40916C', padding: 15, borderRadius: 10, alignItems: 'center' },
-    verifyButtonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
+   // Updated styles for the first code to match the second one
+modalContainer: {
+    width: 400,
+    padding: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    alignSelf: "center"
+},
+modalContent: {
+    width: '85%', 
+    backgroundColor: '#fff', 
+    padding: 25, 
+    borderRadius: 12, 
+    alignItems: 'center',
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 }, 
+    shadowOpacity: 0.3, 
+    shadowRadius: 4, 
+    elevation: 5,
+},
+modalTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#005F73', 
+    marginBottom: 10 
+},
+otpInput: { 
+    width: '90%', 
+    height: 50, 
+    borderWidth: 1, 
+    borderColor: '#ccc', 
+    borderRadius: 10, 
+    marginBottom: 15, 
+    fontSize: 18, 
+    textAlign: 'center' 
+},
+timerText: { 
+    fontSize: 16, 
+    color: '#FF5733', 
+    marginBottom: 15, 
+    fontWeight: 'bold' 
+},
+verifyButton: { 
+    width: '90%', 
+    backgroundColor: '#40916C', 
+    padding: 15, 
+    borderRadius: 10, 
+    alignItems: 'center' 
+},
+verifyButtonText: { 
+    color: 'white', 
+    fontWeight: 'bold', 
+    fontSize: 18 
+},
 });

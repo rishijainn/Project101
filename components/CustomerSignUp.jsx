@@ -31,32 +31,43 @@ const CustomerSignUp = ({ navigation }) => {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const generateOtp = () => {
+    const generateOtp = async () => {
         if (form.password !== form.ConfirmPassword) {
             Alert.alert("Error", "Passwords do not match.");
             return;
         }
-
         setIsLoading(true);
-        const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        setOtp(generatedOtp);
-
-        axios.post(`http://10.0.2.2:4000/user/emailVerification/${form.email}/${generatedOtp}`)
-            .then(() => {
-                setIsGenerated(true);
-                setIsModalVisible(true);
-                setTimer(30);  // Reset timer when OTP is sent
-            })
-            .catch(error => console.error("OTP Error:", error))
-            .finally(() => setIsLoading(false));
+    
+        try {
+            const response = await axios.get(`http://10.0.2.2:4000/user/emailValidation/${form.email}`);
+            console.log(response.data.success,"value")
+            if (response.data.success) {
+                Alert.alert("User already exists");
+                setForm({ name: "", email: "", password: "", ConfirmPassword: "" });
+                setIsLoading(false); // 🛠 **Move this here**
+                return;
+            }
+    
+            const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            setOtp(generatedOtp);
+    
+            await axios.post(`http://10.0.2.2:4000/user/emailVerification/${form.email}/${generatedOtp}`);
+            setIsGenerated(true);
+            setIsModalVisible(true);
+            setTimer(30);
+        } catch (error) {
+            console.error("OTP Error:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
+    
 
     const verification = async () => {
         if (enteredOtp.trim() === otp.trim()) {
             setIsVerified(true);
             Alert.alert("Success", "OTP Verified Successfully!");
             await onSubmit();
-            navigation.navigate("Home");
         } else {
             Alert.alert("Error", "Invalid OTP. Please try again.");
         }
@@ -87,6 +98,8 @@ const CustomerSignUp = ({ navigation }) => {
                 ["name", response.data.user.name],
                 ["email", response.data.user.email]
             ]);
+
+            navigation.navigate('Home')
 
         } catch (error) {
             console.error("Signup Error:", error.response ? error.response.data : error.message);
