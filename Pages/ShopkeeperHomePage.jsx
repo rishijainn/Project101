@@ -5,7 +5,7 @@ import { ActivityIndicator } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../AuthProvider';
-
+import EncryptedStorage from 'react-native-encrypted-storage';
 const ShopkeeperHomePage = ({ navigation }) => {
     const [search, setSearch] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +43,7 @@ const ShopkeeperHomePage = ({ navigation }) => {
     
     const logOutHandler = async () => {
         try {
+            await EncryptedStorage.removeItem("fcm");
             await logout();
         } catch (error) {
             console.error("Error logging out:", error);

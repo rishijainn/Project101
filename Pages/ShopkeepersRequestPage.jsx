@@ -5,7 +5,10 @@ import {
   View, 
   ScrollView, 
   Pressable, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Modal,
+  TextInput,
+  Switch
 } from 'react-native'
 import axios from 'axios'
 import { useAuth } from '../AuthProvider'
@@ -16,6 +19,12 @@ const ShopkeepersRequestPage = () => {
   const [shopDetails, setShopDetails] = useState(null);
   const [shopRequest, setShopRequest] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentRequest, setCurrentRequest] = useState(null);
+  const [price, setPrice] = useState('');
+  const [providesDelivery, setProvidesDelivery] = useState(false);
+  const [deliveryCost, setDeliveryCost] = useState('');
+  const [priceError, setPriceError] = useState('');
 
   useEffect(() => {
     if (!userId) {
@@ -28,6 +37,7 @@ const ShopkeepersRequestPage = () => {
         const response = await axios.get(
           `http://10.0.2.2:4000/noti/getShopKepperNotification/${userId}`
         );
+        console.log(response)
         setShopDetails(response.data.shopInfo || null);
         setShopRequest(response.data.response || []);
         setIsLoading(false);
@@ -38,9 +48,38 @@ const ShopkeepersRequestPage = () => {
     };
 
     fetchRequests();
-  }, [userId]);
+  },);
 
-  const handleAcceptRequest = async (item) => {
+  const openPriceModal = (item) => {
+    setCurrentRequest(item);
+    setPrice('');
+    setProvidesDelivery(false);
+    setDeliveryCost('');
+    setPriceError('');
+    setModalVisible(true);
+  };
+
+  const validateAndSubmit = () => {
+    // Validate price
+    if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+      setPriceError('Please enter a valid price');
+      return;
+    }
+    
+    // Validate delivery cost if delivery is provided
+    if (providesDelivery && (!deliveryCost || isNaN(parseFloat(deliveryCost)) || parseFloat(deliveryCost) < 0)) {
+      setPriceError('Please enter a valid delivery cost');
+      return;
+    }
+
+    // All validations passed
+    handleAcceptRequest();
+  };
+
+  const handleAcceptRequest = async () => {
+    if (!currentRequest) return;
+    
+    const item = currentRequest;
     const RequestId = item.requestId;
     const ShopName = shopDetails.shopName;
     const shopAddress = shopDetails.address;
@@ -63,7 +102,10 @@ const ShopkeepersRequestPage = () => {
           lon: lon,
           ShopkeeperName: name,
           messages: "hello I accept the request",
-          fcmToken: fcmToken
+          fcmToken: fcmToken,
+          price: parseFloat(price),
+          providesDelivery: providesDelivery,
+          deliveryCost: providesDelivery ? parseFloat(deliveryCost) : 0
         }
       );
 
@@ -75,8 +117,12 @@ const ShopkeepersRequestPage = () => {
       setShopRequest(prevRequests => 
         prevRequests.filter(request => request._id !== item._id)
       );
+      
+      // Close the modal
+      setModalVisible(false);
     } catch (error) {
       console.log("Error processing request:", error);
+      setPriceError('Failed to process request. Please try again.');
     }
   };
 
@@ -122,7 +168,7 @@ const ShopkeepersRequestPage = () => {
               <View style={styles.buttonContainer}>
                 <Pressable 
                   style={[styles.button, styles.acceptButton]} 
-                  onPress={() => handleAcceptRequest(item)}
+                  onPress={() => openPriceModal(item)}
                 >
                   <Text style={styles.buttonText}>Accept</Text>
                 </Pressable>
@@ -144,6 +190,71 @@ const ShopkeepersRequestPage = () => {
           </Text>
         </View>
       )}
+
+      {/* Price and Delivery Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Set Your Offer</Text>
+            
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Price (₹):</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter price"
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="numeric"
+              />
+            </View>
+
+            <View style={styles.switchContainer}>
+              <Text style={styles.switchLabel}>Provide Delivery?</Text>
+              <Switch
+                value={providesDelivery}
+                onValueChange={setProvidesDelivery}
+                trackColor={{ false: "#767577", true: "#2ecc71" }}
+                thumbColor={providesDelivery ? "#fff" : "#f4f3f4"}
+              />
+            </View>
+
+            {providesDelivery && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Delivery Cost (₹):</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Enter delivery cost"
+                  value={deliveryCost}
+                  onChangeText={setDeliveryCost}
+                  keyboardType="numeric"
+                />
+              </View>
+            )}
+
+            {priceError ? <Text style={styles.errorText}>{priceError}</Text> : null}
+
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={validateAndSubmit}
+              >
+                <Text style={styles.buttonText}>Confirm</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -248,5 +359,81 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#7f8c8d',
     fontSize: 16,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 22,
+    width: '85%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#2c3e50',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: '#34495e',
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: '#34495e',
+    fontWeight: '500',
+  },
+  errorText: {
+    color: '#e74c3c',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#95a5a6',
+  },
+  confirmButton: {
+    backgroundColor: '#2ecc71',
   },
 });

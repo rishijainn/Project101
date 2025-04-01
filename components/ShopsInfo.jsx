@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 const ShopkeeperSignUp = () => {
-
+ 
     // Form state
     const navigation=useNavigation();
     const [location, setLocation] = useState(null);
@@ -227,11 +227,8 @@ const ShopkeeperSignUp = () => {
 
             if (response.status === 201) {
                 Alert.alert("Success", "Shop information registered successfully!");
-                // Navigate to next screen or dashboard
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: "ShopkeeperTabs" }]
-                });
+                navigation.navigate('Login');
+                
             } else {
                 Alert.alert("Error", "Failed to register shop information.");
             }

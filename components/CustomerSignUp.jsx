@@ -91,15 +91,7 @@ const CustomerSignUp = ({ navigation }) => {
             console.log("Signup Response:", response.data);
             Alert.alert("Success", response.data.message);
 
-            await AsyncStorage.multiSet([
-                ["isLoggedIn", "true"],
-                ["user", "customer"],
-                ["userId", response.data.user._id],
-                ["name", response.data.user.name],
-                ["email", response.data.user.email]
-            ]);
-
-            navigation.navigate('Home')
+            navigation.navigate('Login')
 
         } catch (error) {
             console.error("Signup Error:", error.response ? error.response.data : error.message);

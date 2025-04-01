@@ -11,6 +11,8 @@ import ShopsInfo from '../components/ShopsInfo';
 import Category from '../Pages/Category';
 import Login from '../Pages/Login';
 import LegalPolicy from '../CustomerPages/LegalPolicy';
+import ViewRequest from '../CustomerPages/ViewRequest';
+import ShopDetails from '../CustomerPages/ShopDetails';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +25,8 @@ const MainStack = ({ userType }) => {
           <Stack.Screen name="Home" component={CustomerHomePage} />
           <Stack.Screen name="AddReq" component={AddRequest} />
           <Stack.Screen name="Request" component={Request} />
+          <Stack.Screen name="ViewRequest" component={ViewRequest}/>
+          <Stack.Screen name="ShopDetails" component={ShopDetails}/>
           <Stack.Screen name="Profile" component={Profile} />
           <Stack.Screen name="ShopInfo" component={ShopsInfo} />
           <Stack.Screen name="category" component={Category} />

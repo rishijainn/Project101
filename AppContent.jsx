@@ -60,6 +60,8 @@ const AppContent = () => {
 
       const prevToken = await EncryptedStorage.getItem("fcm");
       const newToken = await messaging().getToken();
+      console.log("newToken",newToken);
+      console.log("prevToken",prevToken)
 
       if (newToken !== prevToken) {
         await EncryptedStorage.setItem("fcm", newToken);

@@ -6,6 +6,7 @@ import { ActivityIndicator } from 'react-native-paper';
 // import { useUser } from '../UserProvider';
 import { useAuth } from '../AuthProvider';
 import axios from 'axios';
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 const categories = [
   { id: '1', name: "Electronics", icon: "phone-portrait-outline" },
@@ -45,6 +46,7 @@ const CustomerHomePage = ({ navigation }) => {
   }, [userDetail]);
 
   const logOutHandler = async () => {
+    await EncryptedStorage.removeItem("fcm");
     await logout();
   }
 

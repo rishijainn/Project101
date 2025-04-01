@@ -37,23 +37,36 @@ const Request = ({route, navigation}) => {
     fetchRequests();
   }, []);
 
+  const handleViewRequest = (item) => {
+    navigation?.navigate('ViewRequest', { requestId: item._id });
+  };
+
   const renderRequestItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.requestCard}
-      onPress={() => navigation?.navigate('RequestDetails', { request: item })}
-    >
+    <View style={styles.requestCard}>
       <View style={styles.statusContainer}>
         <View style={[styles.statusIndicator, { backgroundColor: getStatusColor(item.status) }]} />
         <Text style={styles.statusText}>{item.status || "Pending"}</Text>
       </View>
-      <Text style={styles.requestTitle}>{item.title || "Request"}</Text>
+      
+      <Text style={styles.requestTitle}>{item.itemName || "Request"}</Text>
+      
       <Text style={styles.requestDescription} numberOfLines={2}>
         {item.description || "No description provided"}
       </Text>
-      <Text style={styles.dateText}>
-        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
-      </Text>
-    </TouchableOpacity>
+      
+      <View style={styles.requestFooter}>
+        <Text style={styles.dateText}>
+          {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.viewButton}
+          onPress={() => handleViewRequest(item)}
+        >
+          <Text style={styles.viewButtonText}>View</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const getStatusColor = (status) => {
@@ -83,7 +96,9 @@ const Request = ({route, navigation}) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <Text style={styles.heading}>My Requests</Text>
+      <View style={styles.header}>
+        <Text style={styles.heading}>My Requests</Text>
+      </View>
       
       {error ? (
         <View style={styles.errorContainer}>
@@ -123,41 +138,53 @@ export default Request;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
     color: '#555',
+    fontWeight: '500',
   },
   heading: {
     textAlign: 'center',
     color: '#2E7D32',
     fontSize: 22,
     fontWeight: 'bold',
-    marginVertical: 16,
     paddingHorizontal: 16,
   },
   listContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingVertical: 12,
+    paddingBottom: 24,
   },
   requestCard: {
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 16,
     marginBottom: 12,
-    elevation: 2,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#eeeeee',
   },
   statusContainer: {
     flexDirection: 'row',
@@ -177,7 +204,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   requestTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#212121',
     marginBottom: 6,
@@ -186,21 +213,44 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#616161',
     marginBottom: 12,
+    lineHeight: 20,
+  },
+  requestFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
   },
   dateText: {
     fontSize: 12,
     color: '#9E9E9E',
-    textAlign: 'right',
+  },
+  viewButton: {
+    backgroundColor: '#2E7D32',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    elevation: 1,
+  },
+  viewButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 50,
+    paddingVertical: 60,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 1,
+    marginTop: 20,
   },
   emptyText: {
     fontSize: 16,
     color: '#757575',
     marginBottom: 8,
+    fontWeight: '500',
   },
   emptySubText: {
     fontSize: 14,
@@ -223,6 +273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+    elevation: 2,
   },
   retryButtonText: {
     color: 'white',
