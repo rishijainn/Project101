@@ -1,6 +1,9 @@
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, ActivityIndicator, StatusBar, TouchableOpacity, Image, Modal, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
+import { useAuth } from '../AuthProvider';
+import ShopDetails from './ShopDetails';
+
 
 const ViewRequest = ({ route, navigation }) => {
   const requestId = route.params.requestId;
@@ -9,6 +12,7 @@ const ViewRequest = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const {userDetail}=useAuth();
 
   const fetchNotifications = async () => {
     try {
@@ -39,21 +43,22 @@ const ViewRequest = ({ route, navigation }) => {
     setModalVisible(true);
   };
 
-  const confirmPurchase = () => {
-    // Close modal
-    console.log(selectedItem,"printing in viewRequest");
-    setModalVisible(false);
-    navigation.navigate("ShopDetails",{selectedItem:selectedItem});
-    
-    // Proceed with purchase
-    // console.log(`Buy confirmed from shop: ${selectedItem.shopName}, price: ${selectedItem.price}`);
-    // // Show success message
-    // Alert.alert(
-    //   "Purchase Initiated",
-    //   `Your order with ${selectedItem.shopName} has been placed successfully.`,
-    //   [{ text: "OK", onPress: () => navigation.navigate('YourOrders') }]
-    // );
-    // navigation.navigate('Checkout', { shopId: selectedItem.shopId, price: selectedItem.price });
+  const confirmPurchase = async() => {
+    try { 
+
+        console.log(selectedItem, "printing in viewRequest");
+        const addpendingReview=await axios.post(`http://10.0.2.2:4000/review/addPendingReview`,{customerId:userDetail.id,ShopkeeperId:selectedItem.ShopId});
+        console.log(addpendingReview);
+        const response=await axios.patch(`http://10.0.2.2:4000/user/deleteAllNotification`,{requestId:selectedItem.requestId,_id:selectedItem._id})
+        console.log(response);
+
+      setModalVisible(false);
+      
+      navigation.navigate("ShopDetails", {selectedItem: selectedItem});
+    } catch (error) {
+      console.error("Error confirming purchase:", error);
+      Alert.alert("Error", "Failed to confirm your purchase. Please try again.");
+    }
   };
 
   const renderNotificationItem = (item, index) => (

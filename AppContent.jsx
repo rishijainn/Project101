@@ -11,9 +11,9 @@ import messaging from '@react-native-firebase/messaging';
 import axios from 'axios';
 
 const AppContent = () => {
-  const { isLoggedIn, userType, loading, userDetail } = useAuth();
+  const { isLoggedIn, userType, loading, userDetail,setNotificationCount } = useAuth();
 
-  // Request Notification Permission
+ 
   useEffect(() => {
     const requestNotificationPermission = async () => {
       try {
@@ -31,8 +31,10 @@ const AppContent = () => {
       }
     };
 
+
     requestNotificationPermission();
   }, []);
+
 
   // Update FCM Token on User Change
   useEffect(() => {
@@ -44,6 +46,7 @@ const AppContent = () => {
   // Handle Incoming Notifications
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      setNotificationCount((prev)=>prev+1)
       Alert.alert("New Notification", JSON.stringify(remoteMessage));
     });
 
@@ -93,7 +96,6 @@ const AppContent = () => {
 
   return (
     <UserProvider>
-      {/* Force Navigation to Update on Auth State Change */}
       <NavigationContainer key={isLoggedIn ? 'main' : 'auth'}>
         {isLoggedIn ? <MainStack userType={userType} /> : <AuthStack />}
       </NavigationContainer>

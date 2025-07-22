@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -8,52 +9,97 @@ export const AuthProvider = ({ children }) => {
   const [userType, setUserType] = useState('');
   const [loading, setLoading] = useState(true);
   const [userDetail, setUserDetail] = useState({ id: "", name: "", email: "", userType: "" });
+  const[notificationCount,setNotificationCount]=useState(0);
+  const [review,setReview]=useState(null);
 
-  // Check login status on mount
+  
   useEffect(() => {
     checkLoginStatus();
-  }, [isLoggedIn]);
+    // checkForPendingReview();
+  }, []);
 
   const checkLoginStatus = async () => {
     try {
       const loggedIn = await AsyncStorage.getItem('isLoggedIn');
       const user = await AsyncStorage.getItem('user');
-      
-      // Fetch user details
       const id = await AsyncStorage.getItem("userId");
       const name = await AsyncStorage.getItem("name");
       const email = await AsyncStorage.getItem("email");
-      console.log(id,name,email);
-      
+      console.log("Current stored values:", id, name, email);
       setUserDetail({ id, name, email, userType: user });
-      setUserType(user);
+      setUserType(user); 
       setIsLoggedIn(loggedIn === 'true');
     } catch (error) {
       console.error('Error reading AsyncStorage:', error);
-    } finally {
+    } finally { 
       setLoading(false);
     }
   };
+   const checkForPendingReview=async()=>{
+      try{
+        console.log(userDetail.id ,"hello")
+        const response=await axios.get(`http://10.0.2.2:4000/review/not-reviewed/${userDetail.id}`);
+        console.log(response); 
+        console.log("chekcing for pending review");
+        if(response.data.response.length>0){
+          setReview(1);
+        }
+  
+      }catch(error){
+        console.log(error);
+      }
+    }
 
   const login = async (userData, type) => {
     try {
-      await AsyncStorage.setItem('isLoggedIn', 'true');
+      await AsyncStorage.setItem('isLoggedIn', 'true'); 
       await AsyncStorage.setItem('user', type);
       await AsyncStorage.setItem('userId', userData._id || '');
       await AsyncStorage.setItem('name', userData.name || '');
       await AsyncStorage.setItem('email', userData.email || '');
       
-      setUserDetail({
-        id: userData.userId || '',
+      const newUserDetail = { 
+        id: userData._id || '',
         name: userData.name || '',
         email: userData.email || '',
         userType: type
-      });
+      };
       
+      console.log("Login setting user details:", newUserDetail);
+      setUserDetail(newUserDetail);
       setIsLoggedIn(true);
       setUserType(type);
     } catch (error) {
       console.error('Error setting login data:', error);
+    }
+  };
+
+  const updateUserDetail = async (newUserDetail) => {
+    try {
+      console.log("Updating user details to:", newUserDetail);
+      
+      // Create updated user object
+      const updatedUser = {
+        ...userDetail,
+        ...newUserDetail
+      };
+      
+      // Update AsyncStorage with new user details
+      if (newUserDetail.name) {
+        await AsyncStorage.setItem('name', newUserDetail.name);
+      }
+      if (newUserDetail.email) {
+        await AsyncStorage.setItem('email', newUserDetail.email);
+      }
+      
+      // Force update the state with new object reference
+      setUserDetail({...updatedUser});
+      
+      console.log("User details after update:", updatedUser);
+      return true;
+    } catch (error) {
+      console.error('Error updating user details:', error);
+      return false;
     }
   };
 
@@ -64,7 +110,6 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.removeItem('userId');
       await AsyncStorage.removeItem('name');
       await AsyncStorage.removeItem('email');
-      
       setIsLoggedIn(false);
       setUserType('');
       setUserDetail({ id: "", name: "", email: "", userType: "" });
@@ -74,15 +119,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        isLoggedIn, 
-        userType, 
-        loading, 
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        userType,
+        loading,
         userDetail,
-        login, 
-        logout, 
-        checkLoginStatus 
+        login,
+        logout,
+        checkLoginStatus,
+        updateUserDetail,
+        setNotificationCount,
+        notificationCount,
+        review,
+        setReview
       }}
     >
       {children}

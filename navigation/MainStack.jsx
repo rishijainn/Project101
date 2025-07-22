@@ -13,6 +13,8 @@ import Login from '../Pages/Login';
 import LegalPolicy from '../CustomerPages/LegalPolicy';
 import ViewRequest from '../CustomerPages/ViewRequest';
 import ShopDetails from '../CustomerPages/ShopDetails';
+import ActiveRequest from '../CustomerPages/ActiveRequest';
+import NotificationPage from '../CustomerPages/NotificationPage';
 
 const Stack = createStackNavigator();
 
@@ -24,10 +26,12 @@ const MainStack = ({ userType }) => {
           <Stack.Screen name="CustomerTabs" component={CustomerTabNavigator} />
           <Stack.Screen name="Home" component={CustomerHomePage} />
           <Stack.Screen name="AddReq" component={AddRequest} />
+          <Stack.Screen name="Notification" component={NotificationPage}/>
           <Stack.Screen name="Request" component={Request} />
           <Stack.Screen name="ViewRequest" component={ViewRequest}/>
           <Stack.Screen name="ShopDetails" component={ShopDetails}/>
           <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="activeRequest" component={ActiveRequest}/>
           <Stack.Screen name="ShopInfo" component={ShopsInfo} />
           <Stack.Screen name="category" component={Category} />
           <Stack.Screen name="Login" component={Login} />

@@ -48,7 +48,7 @@ const ShopkeepersRequestPage = () => {
     };
 
     fetchRequests();
-  },);
+  },[]);
 
   const openPriceModal = (item) => {
     setCurrentRequest(item);

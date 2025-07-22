@@ -1,67 +1,133 @@
-import { StyleSheet, Text, View, TextInput, ScrollView, Pressable, FlatList, KeyboardAvoidingView, Platform, StatusBar, Image } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, ScrollView, Pressable, FlatList, KeyboardAvoidingView, Platform, StatusBar, Image, Dimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator } from 'react-native-paper';
-// import { useUser } from '../UserProvider';
 import { useAuth } from '../AuthProvider';
-import axios from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
+import ReviewModal from '../CustomerPages/CustomerComponent/ReviewModal';
+
+const { width } = Dimensions.get('window');
+const cardWidth = width * 0.85;
+
+// Updated color palette with vibrant blue as primary color
+const colors = {
+  primary: '#2B78E4',    // Vibrant blue primary color
+  secondary: '#1D5BBF',  // Darker blue for contrast
+  accent: '#FF9500',     // Warm orange accent
+  tertiary: '#8E44AD',   // Purple for variety
+  light: '#F4F7FC',      // Light blue/gray background
+  white: '#FFFFFF',      // Clean white UI elements
+  lightText: '#6B7280',  // Medium gray for secondary text
+  darkText: '#1F2937',   // Dark text for primary text
+  success: '#34C759',    // Success color
+  neutral: '#9CA3AF',    // Medium gray
+};
 
 const categories = [
-  { id: '1', name: "Electronics", icon: "phone-portrait-outline" },
-  { id: '2', name: "Groceries", icon: "basket-outline" },
-  { id: '3', name: "Clothing", icon: "shirt-outline" },
-  { id: '4', name: "Home Essentials", icon: "home-outline" },
-  { id: '5', name: "Others", icon: "ellipsis-horizontal-outline" }
+  { id: '1', name: "Electronics", icon: "phone-portrait-outline", color: colors.primary },
+  { id: '2', name: "Groceries", icon: "basket-outline", color: colors.tertiary },
+  { id: '3', name: "Clothing", icon: "shirt-outline", color: colors.accent },
+  // { id: '4', name: "Home", icon: "home-outline", color: colors.secondary },
+  // { id: '5', name: "Others", icon: "ellipsis-horizontal-outline", color: colors.primary }
+];
+
+const featuredCards = [
+  { 
+    id: '1', 
+    title: 'Daily Essentials',
+    description: 'Find everything you need for your daily routine',
+    color: colors.primary,
+    icon: 'calendar-outline'
+  },
+  { 
+    id: '2', 
+    title: 'Flash Deals',
+    description: 'Limited time offers from local shops',
+    color: colors.accent,
+    icon: 'flash-outline'
+  },
+  { 
+    id: '3', 
+    title: 'Popular Items',
+    description: 'Most requested items near you',
+    color: colors.tertiary,
+    icon: 'trending-up-outline'
+  },
+  { 
+    id: '4', 
+    title: 'Seasonal Offers',
+    description: 'Special discounts for this season',
+    color: colors.secondary,
+    icon: 'leaf-outline'
+  }
 ];
 
 const CustomerHomePage = ({ navigation }) => {
-  const [search, setSearch] = useState('');
-  const { userDetail,logout } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const [recentRequests, setRecentRequests] = useState(null);
+  const { userDetail, logout, notificationCount, setNotificationCount, Review, setReview } = useAuth();
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const flatListRef = useRef(null);
 
+  const handleNotificationPress = () => {
+    navigation.navigate('Notification');
+  };
 
+  const handleAddRequest = () => {
+    navigation.navigate("AddReq", { id: userDetail.id });
+  };
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      const userId = userDetail.id;
-      console.log(userDetail);
-      console.log(userId);
-      const response = await axios.get(`http://10.0.2.2:4000/user/getRequest/${userId}`);
-      console.log("helllo")
-      console.log("Requests loaded:", response.data.response?.length || 0);
+  const handleScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffsetX / (cardWidth + 20));
+    setActiveCardIndex(index);
+  };
 
-      console.log(response.data.response);
-      const newReponse = response.data.response.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3);
-      console.log(newReponse);
-      if (newReponse) {
-        setRecentRequests(newReponse); 
-      } 
-
+  const handleCloseReviewModal = () => {
+    if (setReview) {
+      setReview(0);
     }
-    console.log("calling fron useeffect");
-    fetchRequests();
-  }, [userDetail]);
+  };
 
-  const logOutHandler = async () => {
-    await EncryptedStorage.removeItem("fcm");
-    await logout();
-  }
+  const renderFeaturedCard = ({ item, index }) => (
+    <Pressable
+      style={styles.cardContainer}
+      onPress={() => {
+        // Handle card press action here
+        console.log(`Card ${item.title} pressed`);
+      }}
+    >
+      <View style={styles.card}>
+        <View style={styles.cardContent}>
+          <View style={styles.cardIconContainer}>
+            <Ionicons name={item.icon} size={28} color={colors.white} />
+          </View>
+          <View style={styles.cardTextContainer}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDescription}>{item.description}</Text>
+          </View>
+        </View>
+      </View>
+    </Pressable>
+  );
 
-  if (isLoading) {
+  const renderDotIndicator = () => {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#064635" />
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={styles.paginationContainer}>
+        {featuredCards.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.paginationDot,
+              index === activeCardIndex ? styles.paginationDotActive : null,
+            ]}
+          />
+        ))}
       </View>
     );
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#064635" barStyle="light-content" />
+      <StatusBar backgroundColor={colors.white} barStyle="dark-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -70,101 +136,87 @@ const CustomerHomePage = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContainer}
         >
-          {/* Header Section */}
+          {/* Header with greeting and notification */}
           <View style={styles.header}>
             <View>
               <Text style={styles.greeting}>Hello, {userDetail.name || 'User'}! 👋</Text>
-              <Text style={styles.subText}>Find what you need from nearby shops</Text>
+              <Text style={styles.subText}>What are you looking for today?</Text>
             </View>
-            <Pressable onPress={logOutHandler} style={styles.profileButton}>
-              <Ionicons name="log-out-outline" size={24} color="#064635" />
+            <Pressable onPress={handleNotificationPress} style={styles.notificationButton}>
+              <Ionicons name="notifications-outline" size={24} color={colors.darkText} />
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </Text>
+                </View>
+              )}
             </Pressable>
           </View>
 
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for items or shops..."
-              placeholderTextColor="#777"
-              value={search}
-              onChangeText={setSearch}
-            />
-            {search.length > 0 && (
-              <Pressable onPress={() => setSearch('')}>
-                <Ionicons name="close-circle" size={20} color="#666" />
-              </Pressable>
-            )}
+          {/* Featured Cards Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured</Text>
           </View>
+          
+          <FlatList
+            ref={flatListRef}
+            horizontal
+            data={featuredCards}
+            renderItem={renderFeaturedCard}
+            keyExtractor={item => item.id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.cardsContainer}
+            snapToInterval={cardWidth + 20}
+            decelerationRate="fast"
+            snapToAlignment="center"
+            onScroll={handleScroll}
+            onMomentumScrollEnd={handleScroll}
+          />
+          
+          {renderDotIndicator()}
 
           {/* Categories */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Categories</Text>
-            <Text style={styles.seeAllText}>See All</Text>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
+          
+          <View style={styles.categoriesGrid}>
             {categories.map((category) => (
-              <Pressable key={category.id} style={styles.categoryButton}>
-                <View style={styles.categoryIconContainer}>
-                  <Ionicons name={category.icon} size={24} color="white" />
+              <Pressable
+                key={category.id}
+                style={styles.categoryButton}
+                onPress={() => {
+                  // Handle category press action here
+                  console.log(`Category ${category.name} pressed`);
+                }}
+              >
+                <View style={[styles.categoryIconContainer]}>
+                  <Ionicons name={category.icon} size={42} />
                 </View>
                 <Text style={styles.categoryText}>{category.name}</Text>
               </Pressable>
             ))}
-          </ScrollView>
-
-          {/* Recent Requests */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Requests</Text>
-            <Text style={styles.seeAllText}>See All</Text>
           </View>
-
-
-
-          {recentRequests?.length > 0 ? (
-            recentRequests.map((item) => (
-              <View key={item._id} style={styles.requestItem}>
-                <View style={styles.requestInfo}>
-                  <Text style={styles.requestText}>{item.itemName}</Text>
-                  <Text style={styles.requestDate}>{item.createdAt}</Text>
-                </View>
-                <View style={styles.requestActions}>
-                  <Text
-                    style={[
-                      styles.statusBadge,
-                      item.status === 'Fulfilled' ? styles.fulfilledStatus : styles.pendingStatus
-                    ]}
-                  >
-                    {item.status}
-                  </Text>
-                  <Pressable style={styles.requestButton}>
-                    <Text style={styles.requestButtonText}>View</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          ) : (
-            <Text style={{ textAlign: 'center', marginTop: 10, color: '#666' }}>
-              No recent requests found.
-            </Text>
-          )}
-
 
           {/* New Request Button */}
           <Pressable
             style={styles.newRequestButton}
-            onPress={() => navigation.navigate("AddReq", { id: userDetail.id })}
+            onPress={handleAddRequest}
           >
-            <Ionicons name="add-circle-outline" size={20} color="white" style={{ marginRight: 8 }} />
-            <Text style={styles.newRequestText}>New Request</Text>
+            <Ionicons name="add-circle" size={24} color={colors.white} style={{ marginRight: 10 }} />
+            <Text style={styles.newRequestText}>Add New Request</Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Review Modal - Rendered when Review === 1 from AuthProvider */}
+      {Review === 1 && (
+        <ReviewModal 
+          visible={true}
+          onClose={handleCloseReviewModal}
+        />
+      )}
     </View>
   );
 };
@@ -174,190 +226,195 @@ export default CustomerHomePage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingHorizontal: 16,
+    backgroundColor: colors.white,
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 30,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#064635',
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'ios' ? 50 : 20,
-    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 30,
+    paddingBottom: 20,
+    backgroundColor: colors.white,
+    // borderBottomLeftRadius: 25,
+    // borderBottomRightRadius: 25,
+    // shadowColor: colors.darkText,
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.08,
+    // shadowRadius: 10,
+    // elevation: 3,
   },
   greeting: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#064635',
+    color: colors.darkText,
   },
   subText: {
     fontSize: 16,
-    color: '#555',
+    color: colors.lightText,
     marginTop: 4,
   },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E8F5E9',
+  notificationButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.light,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 3,
-    shadowColor: '#000',
+    position: 'relative',
+    shadowColor: colors.darkText,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
-    marginBottom: 24,
+    // elevation: 1,
   },
-  searchIcon: {
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
+  notificationBadge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    backgroundColor: colors.accent,
+    borderRadius: 10,
+    minWidth: 20,
     height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    marginTop: 30,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#064635',
+    color: colors.darkText,
   },
-  seeAllText: {
-    fontSize: 14,
-    color: '#2D6A4F',
-    fontWeight: '500',
+  cardsContainer: {
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
-  categoriesContainer: {
-    paddingBottom: 24,
-    paddingTop: 8,
+  cardContainer: {
+    width: cardWidth,
+    marginHorizontal: 10,
   },
-  categoryButton: {
+  card: {
+    height: 200,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.darkText,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    backgroundColor: colors.primary
+  },
+  cardContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
-    width: 80,
   },
-  categoryIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2D6A4F',
+  cardIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginRight: 15,
   },
-  categoryText: {
-    color: '#333',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  requestItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 12,
-  },
-  requestInfo: {
+  cardTextContainer: {
     flex: 1,
   },
-  requestText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  requestDate: {
-    fontSize: 12,
-    color: '#777',
-  },
-  requestActions: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    fontSize: 12,
-    fontWeight: '500',
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.white,
     marginBottom: 8,
   },
-  pendingStatus: {
-    backgroundColor: '#FFF3E0',
-    color: '#E65100',
-  },
-  fulfilledStatus: {
-    backgroundColor: '#E8F5E9',
-    color: '#2E7D32',
-  },
-  requestButton: {
-    backgroundColor: '#FFB300',
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  requestButtonText: {
-    color: 'white',
+  cardDescription: {
     fontSize: 14,
-    fontWeight: 'bold',
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 20,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.neutral,
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
+  },
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: 10,
+  },
+  categoryButton: {
+    width: width / 3 - 25,
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  categoryIconContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: colors.darkText,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    // elevation: 2,
+    backgroundColor: colors.light,
+  },
+  categoryText: {
+    color: colors.darkText,
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   newRequestButton: {
-    backgroundColor: '#064635',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    marginHorizontal: 20,
+    padding: 18,
+    borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowRadius: 10,
+    elevation: 4,
   },
   newRequestText: {
-    color: 'white',
+    color: colors.white,
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 18,
   },
 });
