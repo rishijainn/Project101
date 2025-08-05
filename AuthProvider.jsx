@@ -26,6 +26,9 @@ export const AuthProvider = ({ children }) => {
       const name = await AsyncStorage.getItem("name");
       const email = await AsyncStorage.getItem("email");
       console.log("Current stored values:", id, name, email);
+      if(loggedIn==='true'){
+        checkForPendingReview(id);
+      }
       setUserDetail({ id, name, email, userType: user });
       setUserType(user); 
       setIsLoggedIn(loggedIn === 'true');
@@ -35,10 +38,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-   const checkForPendingReview=async()=>{
+   const checkForPendingReview=async(userId)=>{
       try{
-        console.log(userDetail.id ,"hello")
-        const response=await axios.get(`http://10.0.2.2:4000/review/not-reviewed/${userDetail.id}`);
+        console.log(userId ,"hello")
+        const response=await axios.get(`http://10.0.2.2:4000/review/not-reviewed/${userId}`);
         console.log(response); 
         console.log("chekcing for pending review");
         if(response.data.response.length>0){

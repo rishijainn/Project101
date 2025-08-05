@@ -15,7 +15,7 @@ import { useAuth } from '../AuthProvider'
 
 const ShopkeepersRequestPage = () => {
   const { userDetail } = useAuth();
-  const userId = userDetail?.id;
+  const userId = userDetail.id;
   const [shopDetails, setShopDetails] = useState(null);
   const [shopRequest, setShopRequest] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +34,7 @@ const ShopkeepersRequestPage = () => {
 
     const fetchRequests = async () => {
       try {
+        console.log(userId);
         const response = await axios.get(
           `http://10.0.2.2:4000/noti/getShopKepperNotification/${userId}`
         );

@@ -64,7 +64,7 @@ const LoginContent = ({navigation, setIsforgetPassword}) => {
                 onSubmitHandler('Shopkeeper');
             }
         } catch (error) {
-            Alert.alert("Connection Error", "Something went wrong. Please check your connection and try again.");
+            Alert.alert("Connection Error", `Something went wrong. Please check your connection and try again.${error}`);
             
         }
         setloading(false);

@@ -97,7 +97,8 @@ const CustomerSignUp = ({ navigation }) => {
                 ["user", "customer"],
                 ["userId", response.data.user._id],
                 ["name", response.data.user.name],
-                ["email", response.data.user.email]
+                ["email", response.data.user.email],
+                ["shopInfo",'false']
             ]);
 
             navigation.navigate("ShopInfo");
