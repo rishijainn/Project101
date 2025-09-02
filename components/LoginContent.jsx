@@ -9,7 +9,7 @@ const LoginContent = ({navigation, setIsforgetPassword}) => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [loading, setloading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const BASE_URL = "http://10.0.2.2:4000";
+    const BASE_URL = "https://shoplocalbackend-1.onrender.com";
     const{login}=useAuth();
 
 

@@ -41,8 +41,8 @@ const ForgotPassword = ({ navigation }) => {
         }
 
         try {
-            const userResponse = await axios.get(`http://10.0.2.2:4000/user/emailValidation/${email}`);
-            const shopResponse = await axios.get(`http://10.0.2.2:4000/Shopkeeper/emailValidation/${email}`);
+            const userResponse = await axios.get(`https://shoplocalbackend-1.onrender.com/user/emailValidation/${email}`);
+            const shopResponse = await axios.get(`https://shoplocalbackend-1.onrender.com/Shopkeeper/emailValidation/${email}`);
 
             // setIsUserEmail(userResponse.data.success);
             // setIsShopEmail(shopResponse.data.success);
@@ -85,7 +85,7 @@ const ForgotPassword = ({ navigation }) => {
         setTimer(30); // Start the countdown
 
         try {
-            await axios.post(`http://10.0.2.2:4000/${selectedUserType === "customer" ? 'user' : 'shopkeeper'}/emailVerification/${email}/${generatedOtp}`);
+            await axios.post(`https://shoplocalbackend-1.onrender.com/${selectedUserType === "customer" ? 'user' : 'shopkeeper'}/emailVerification/${email}/${generatedOtp}`);
             setSuccessMessage("OTP has been sent to your email.");
             setGenratedOtp(generatedOtp);
             setTimeout(() => {
@@ -127,7 +127,7 @@ const ForgotPassword = ({ navigation }) => {
     const updatePassword = () => {
         setIsLoading(true)
         try {
-            axios.patch(`http://10.0.2.2:4000/${userType === "customer" ? 'user' : 'shopkeeper'}/updatePassword/${email}`, { password: checkPassword.confirmPassword });
+            axios.patch(`https://shoplocalbackend-1.onrender.com/${userType === "customer" ? 'user' : 'shopkeeper'}/updatePassword/${email}`, { password: checkPassword.confirmPassword });
             setIsLoading(false);
             navigation.navigate("Login");
         } catch {

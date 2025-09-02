@@ -131,7 +131,7 @@ const Profile = ({navigation}) => {
     
     try {
       const response = await axios.patch(
-        `http://10.0.2.2:4000/user/updateUserProfile/${userDetail.id}`,
+        `https://shoplocalbackend-1.onrender.com/user/updateUserProfile/${userDetail.id}`,
         { name: editName, email: editEmail }
       );
       console.log(response);
@@ -167,7 +167,7 @@ const Profile = ({navigation}) => {
     
     try {
       const otpResponse = await axios.post(
-        `http://10.0.2.2:4000/user/emailVerification/${editEmail}/${newOtp}`
+        `https://shoplocalbackend-1.onrender.com/user/emailVerification/${editEmail}/${newOtp}`
       );
       console.log(otpResponse);
       
@@ -199,7 +199,7 @@ const Profile = ({navigation}) => {
     
     try {
       const response = await axios.patch(
-        `http://10.0.2.2:4000/user/updateUserProfile/${userDetail.id}`,
+        `https://shoplocalbackend-1.onrender.com/user/updateUserProfile/${userDetail.id}`,
         { name: editName, email: emailToVerify, emailVerified: true }
       );
       
@@ -243,7 +243,7 @@ const Profile = ({navigation}) => {
     setIsSubmitting(true);
     try {
       const response = await axios.post(
-        `http://10.0.2.2:4000/user/sendOTP/${userDetail.id}`,
+        `https://shoplocalbackend-1.onrender.com/user/sendOTP/${userDetail.id}`,
         { email: emailToVerify, otp: newOtp }
       );
       

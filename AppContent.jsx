@@ -73,7 +73,7 @@ const AppContent = () => {
     const endpoint = userDetail.userType?.toLowerCase() === "shopkeeper" ? "Shopkeeper" : "user";
     console.log(userDetail.id);
     const response = await axios.post(
-      `http://10.0.2.2:4000/${endpoint}/setFcm/${userDetail.id}`,
+      `https://shoplocalbackend-1.onrender.com/${endpoint}/setFcm/${userDetail.id}`,
       { fcmToken: newToken }
     );
 

@@ -17,7 +17,7 @@ const ViewRequest = ({ route, navigation }) => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://10.0.2.2:4000/noti/getAllNotifications/${requestId}`);
+      const response = await axios.get(`https://shoplocalbackend-1.onrender.com/noti/getAllNotifications/${requestId}`);
       console.log(response.data);
       setNotifications(Array.isArray(response.data) ? response.data : []);
       setError(null);
@@ -47,9 +47,9 @@ const ViewRequest = ({ route, navigation }) => {
     try { 
 
         console.log(selectedItem, "printing in viewRequest");
-        const addpendingReview=await axios.post(`http://10.0.2.2:4000/review/addPendingReview`,{customerId:userDetail.id,ShopkeeperId:selectedItem.ShopId});
+        const addpendingReview=await axios.post(`https://shoplocalbackend-1.onrender.com/review/addPendingReview`,{customerId:userDetail.id,ShopkeeperId:selectedItem.ShopId});
         console.log(addpendingReview);
-        const response=await axios.patch(`http://10.0.2.2:4000/user/deleteAllNotification`,{requestId:selectedItem.requestId,_id:selectedItem._id})
+        const response=await axios.patch(`https://shoplocalbackend-1.onrender.com/user/deleteAllNotification`,{requestId:selectedItem.requestId,_id:selectedItem._id})
         console.log(response);
 
       setModalVisible(false);

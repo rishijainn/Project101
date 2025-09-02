@@ -14,7 +14,7 @@ const NotificationPage = () => {
   const getNotifications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://10.0.2.2:4000/noti/cutomerNotification`, {
+      const response = await axios.get(`https://shoplocalbackend-1.onrender.com/noti/cutomerNotification`, {
         params: { customer_id: userDetail.id }
       });
       

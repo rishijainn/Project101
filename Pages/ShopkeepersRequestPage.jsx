@@ -36,7 +36,7 @@ const ShopkeepersRequestPage = () => {
       try {
         console.log(userId);
         const response = await axios.get(
-          `http://10.0.2.2:4000/noti/getShopKepperNotification/${userId}`
+          `https://shoplocalbackend-1.onrender.com/noti/getShopKepperNotification/${userId}`
         );
         console.log(response)
         setShopDetails(response.data.shopInfo || null);
@@ -92,7 +92,7 @@ const ShopkeepersRequestPage = () => {
 
     try {
       const response = await axios.post(
-        `http://10.0.2.2:4000/noti/sendAcceptedReq`,
+        `https://shoplocalbackend-1.onrender.com/noti/sendAcceptedReq`,
         {
           customerId: customerId,
           ShopkeeperId: userDetail.id,
@@ -111,7 +111,7 @@ const ShopkeepersRequestPage = () => {
       );
 
       const deleteResponse = await axios.delete(
-        `http://10.0.2.2:4000/noti/deleteShopNotification/${item._id}`
+        `https://shoplocalbackend-1.onrender.com/noti/deleteShopNotification/${item._id}`
       );
 
       // Remove the accepted request from the list
@@ -130,7 +130,7 @@ const ShopkeepersRequestPage = () => {
   const handleRejectRequest = async (item) => {
     try {
       await axios.delete(
-        `http://10.0.2.2:4000/noti/deleteShopNotification/${item._id}`
+        `https://shoplocalbackend-1.onrender.com/noti/deleteShopNotification/${item._id}`
       );
 
       // Remove the rejected request from the list

@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
    const checkForPendingReview=async(userId)=>{
       try{
         console.log(userId ,"hello")
-        const response=await axios.get(`http://10.0.2.2:4000/review/not-reviewed/${userId}`);
+        const response=await axios.get(`https://shoplocalbackend-1.onrender.com/review/not-reviewed/${userId}`);
         console.log(response); 
         console.log("chekcing for pending review");
         if(response.data.response.length>0){

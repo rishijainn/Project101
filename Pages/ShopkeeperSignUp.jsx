@@ -39,7 +39,7 @@ const CustomerSignUp = ({ navigation }) => {
         setIsLoading(true);
     
         try {
-            const response = await axios.get(`http://10.0.2.2:4000/Shopkeeper/emailValidation/${form.email}`);
+            const response = await axios.get(`https://shoplocalbackend-1.onrender.com/Shopkeeper/emailValidation/${form.email}`);
             console.log(response.data.success,"value")
             if (response.data.success) {
                 Alert.alert("User already exists");
@@ -51,7 +51,7 @@ const CustomerSignUp = ({ navigation }) => {
             const generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
             setOtp(generatedOtp);
     
-            await axios.post(`http://10.0.2.2:4000/Shopkeeper/emailVerification/${form.email}/${generatedOtp}`);
+            await axios.post(`https://shoplocalbackend-1.onrender.com/Shopkeeper/emailVerification/${form.email}/${generatedOtp}`);
             setIsGenerated(true);
             setIsModalVisible(true);
             setTimer(30);
@@ -78,7 +78,7 @@ const CustomerSignUp = ({ navigation }) => {
         setIsLoading(true);
         try {
             const response = await axios.post(
-                `http://10.0.2.2:4000/Shopkeeper/SignUp`,
+                `https://shoplocalbackend-1.onrender.com/Shopkeeper/SignUp`,
                 {
                     name: form.name,
                     email: form.email,

@@ -15,7 +15,7 @@ const Request = ({route, navigation}) => {
     try {
       setLoading(true);
       console.log(userId)
-      const response = await axios.get(`http://10.0.2.2:4000/user/getRequest/${userId}`);
+      const response = await axios.get(`https://shoplocalbackend-1.onrender.com/user/getRequest/${userId}`);
       console.log("Requests loaded:", response.data.response?.length || 0);
       setRequests(response.data.response || []);
       setError(null);

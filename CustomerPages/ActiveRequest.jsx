@@ -27,7 +27,7 @@ const ActiveRequest = () => {
     try {
       setError(null);
       const response = await axios.get(
-        `http://10.0.2.2:4000/noti/getActiveRequest/${userDetail.id}`
+        `https://shoplocalbackend-1.onrender.com/noti/getActiveRequest/${userDetail.id}`
       );
    
       
@@ -77,7 +77,7 @@ const ActiveRequest = () => {
             try {
               // Call the delete API endpoint
               console.log(requestId);
-              await axios.delete('http://10.0.2.2:4000/noti/deleteRequest', {
+              await axios.delete('https://shoplocalbackend-1.onrender.com/noti/deleteRequest', {
                 data: { requestId } // Send the requestId in the request body
               });
               

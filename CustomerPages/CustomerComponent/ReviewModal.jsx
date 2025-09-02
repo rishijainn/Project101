@@ -15,7 +15,7 @@ const ReviewModal = ({ visible = true, onClose }) => {
   const AddReview = async () => {
     // try {
     //   setIsLoading(true);
-    //   const response = await axios.post(`http://10.0.2.2:4000/review/reviewShop`, {
+    //   const response = await axios.post(`https://shoplocalbackend-1.onrender.com/review/reviewShop`, {
     //     customerId: userDetail.id,
     //     shopId: shopId,
     //     rating: rating,

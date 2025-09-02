@@ -34,7 +34,7 @@ const ShopkeeperSignUp = () => {
   const CoordinateAPI_KEY = 'AlzaSydcYsEvzeVyGiy-u5NpEOMQT2oijBSlwTL';
   const GEMINI_API_KEY = 'AIzaSyCZewNCb6UlGLZbzBWfQAdGrWWZZl1oLDk';
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-  const BACKEND_URL = 'http://10.0.2.2:4000/Shopkeeper';
+  const BACKEND_URL = 'https://shoplocalbackend-1.onrender.com/Shopkeeper';
 
   // Format the address using Gemini API
   const formatAddress = async () => {

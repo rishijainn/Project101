@@ -148,7 +148,7 @@ const AddRequest = ({ navigation, route }) => {
       
       // Send FormData with proper headers
       const response = await axios.post(
-        "http://10.0.2.2:4000/user/create-request",
+        "https://shoplocalbackend-1.onrender.com/user/create-request",
         formData,
         {
           headers: {
